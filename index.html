@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebNFC: Система оплаты</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        button { 
+            padding: 12px 20px; font-size: 16px; margin: 5px; 
+            cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px;
+        }
+        button:disabled { background: #ccc; }
+        #output { 
+            background: #f4f4f4; padding: 15px; border-radius: 5px; 
+            margin-top: 20px; white-space: pre-wrap; font-family: monospace; 
+            border: 1px solid #ddd; max-height: 300px; overflow-y: auto;
+        }
+        .status { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>NFC Управление картами</h1>
+    <div id="supportStatus" class="status"></div>
+
+    <div class="controls">
+        <button id="scanButton">💳 Считать карту (Оплата)</button>
+        <button id="writeButton">✍️ Записать ID/Данные</button>
+        <button id="makeReadOnlyButton">🔒 Сделать только для чтения</button>
+    </div>
+
+    <h3>Лог операций:</h3>
+    <div id="output">Здесь будут отображаться действия...</div>
+
+    <script>
+        const output = document.getElementById('output');
+        const statusDiv = document.getElementById('supportStatus');
+
+        // Кастомная функция логгирования
+        function log(message) {
+            const now = new Date().toLocaleTimeString();
+            output.innerText += `[${now}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Проверка поддержки WebNFC
+        if (!("NDEFReader" in window)) {
+            statusDiv.innerText = "Ошибка: Web NFC не поддерживается. Используйте Chrome на Android и HTTPS.";
+            document.querySelectorAll('button').forEach(b => b.disabled = true);
+        }
+
+        // --- ЧТЕНИЕ (Сценарий оплаты) ---
+        scanButton.addEventListener("click", async () => {
+            log("Запуск сканирования...");
+            try {
+                const ndef = new NDEFReader();
+                await ndef.scan();
+                log("> Скан запущен. Поднесите карту...");
+
+                ndef.addEventListener("readingerror", () => {
+                    log("Ошибка чтения. Попробуйте еще раз.");
+                });
+
+                ndef.addEventListener("reading", ({ message, serialNumber }) => {
+                    log(`>>> Карта обнаружена!`);
+                    log(`ID карты (UID): ${serialNumber}`);
+                    
+                    // Разбор записей на карте
+                    for (const record of message.records) {
+                        const decoder = new TextDecoder(record.encoding);
+                        log(`Данные: ${decoder.decode(record.data)} (Тип: ${record.recordType})`);
+                    }
+                    
+                    // ТУТ ЛОГИКА ОПЛАТЫ:
+                    // fetch('/api/pay', { method: 'POST', body: JSON.stringify({ uid: serialNumber }) })
+                });
+            } catch (error) {
+                log("Ошибка: " + error);
+            }
+        });
+
+        // --- ЗАПИСЬ (Сценарий регистрации карты) ---
+        writeButton.addEventListener("click", async () => {
+            log("Приготовьтесь к записи...");
+            try {
+                const ndef = new NDEFReader();
+                // Записываем, например, внутренний ID пользователя или токен
+                await ndef.write("USER_ID_777"); 
+                log("> Данные успешно записаны на карту!");
+            } catch (error) {
+                log("Ошибка записи: " + error);
+            }
+        });
+
+        // --- БЛОКИРОВКА (Сделать карту вечной) ---
+        makeReadOnlyButton.addEventListener("click", async () => {
+            log("ВНИМАНИЕ: Делаем карту Read-Only...");
+            try {
+                const ndef = new NDEFReader();
+                await ndef.makeReadOnly();
+                log("> Карта теперь защищена от записи навсегда.");
+            } catch (error) {
+                log("Ошибка: " + error);
+            }
+        });
+    </script>
+</body>
+</html>
