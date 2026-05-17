@@ -1,24 +1,51 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebNFC: Система оплаты</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        button { 
-            padding: 12px 20px; font-size: 16px; margin: 5px; 
-            cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px;
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            line-height: 1.6;
         }
-        button:disabled { background: #ccc; }
-        #output { 
-            background: #f4f4f4; padding: 15px; border-radius: 5px; 
-            margin-top: 20px; white-space: pre-wrap; font-family: monospace; 
-            border: 1px solid #ddd; max-height: 300px; overflow-y: auto;
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
-        .status { color: red; font-weight: bold; }
+
+        button:disabled {
+            background: #ccc;
+        }
+
+        #output {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            border: 1px solid #ddd;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
 
     <h1>NFC Управление картами</h1>
@@ -50,49 +77,67 @@
             document.querySelectorAll('button').forEach(b => b.disabled = true);
         }
 
-        // --- ЧТЕНИЕ (Сценарий оплаты) ---
+        // --- ЧТЕНИЕ И ОПЛАТА ---
         scanButton.addEventListener("click", async () => {
-            log("Запуск сканирования...");
+            log("Запуск сканирования для оплаты...");
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                log("> Скан запущен. Поднесите карту...");
 
-                ndef.addEventListener("readingerror", () => {
-                    log("Ошибка чтения. Попробуйте еще раз.");
-                });
+                ndef.onreading = async ({ message, serialNumber }) => {
+                    log(`>>> Карта: ${serialNumber}`);
 
-                ndef.addEventListener("reading", ({ message, serialNumber }) => {
-                    log(`>>> Карта обнаружена!`);
-                    log(`ID карты (UID): ${serialNumber}`);
-                    
-                    // Разбор записей на карте
                     for (const record of message.records) {
-                        const decoder = new TextDecoder(record.encoding);
-                        log(`Данные: ${decoder.decode(record.data)} (Тип: ${record.recordType})`);
-                        log(record.data.userID, record.data.balance)
+                        // 1. Декодируем байты в строку
+                        const decoder = new TextDecoder();
+                        const textData = decoder.decode(record.data);
+
+                        try {
+                            // 2. Превращаем строку в объект JSON
+                            let cardObj = JSON.parse(textData);
+                            log(`Владелец: ${cardObj.userID}, Баланс: ${cardObj.balance}р`);
+
+                            // 3. Логика оплаты
+                            const price = 20;
+                            if (cardObj.balance >= price) {
+                                cardObj.balance -= price; // Уменьшаем баланс в памяти телефона
+
+                                log(`Списываю ${price}р... Новый баланс: ${cardObj.balance}р`);
+
+                                // 4. ВАЖНО: Чтобы сохранить новый баланс, нужно ЗАПИСАТЬ его обратно на карту!
+                                // Мы вызываем запись сразу после чтения
+                                await ndef.write(JSON.stringify(cardObj));
+                                log("✅ Оплата прошла! Баланс обновлен на карте.");
+                            } else {
+                                log("❌ Недостаточно средств!");
+                            }
+                        } catch (e) {
+                            log("Ошибка: На карте не JSON данные или карта пуста.");
+                        }
                     }
-                    
-                    if(message.record.balance > 20){
-                        message.record.balance -= 20;
-                        log('оплачено, баланс: ', message.record.balance)
-                    }
-                    // ТУТ ЛОГИКА ОПЛАТЫ:
-                    // fetch('/api/pay', { method: 'POST', body: JSON.stringify({ uid: serialNumber }) })
-                });
+                };
             } catch (error) {
                 log("Ошибка: " + error);
             }
         });
 
-        // --- ЗАПИСЬ (Сценарий регистрации карты) ---
+        // --- ЗАПИСЬ (Регистрация новой карты) ---
         writeButton.addEventListener("click", async () => {
-            log("Приготовьтесь к записи...");
+            log("Приложите карту для инициализации...");
             try {
                 const ndef = new NDEFReader();
-                // Записываем, например, внутренний ID пользователя или токен
-                await ndef.write({userID: 'GG234g', balance: 100}); 
-                log("> Данные успешно записаны на карту!");
+
+                // Данные, которые мы хотим сохранить
+                const userData = {
+                    userID: 'GG234g',
+                    balance: 100
+                };
+
+                // 5. В NFC можно писать только строку или байты. 
+                // Превращаем наш объект в строку JSON.
+                await ndef.write(JSON.stringify(userData));
+
+                log("✅ Карта создана: ID " + userData.userID + " с балансом " + userData.balance);
             } catch (error) {
                 log("Ошибка записи: " + error);
             }
@@ -111,4 +156,5 @@
         });
     </script>
 </body>
+
 </html>
