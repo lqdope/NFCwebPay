@@ -70,8 +70,13 @@
                     for (const record of message.records) {
                         const decoder = new TextDecoder(record.encoding);
                         log(`Данные: ${decoder.decode(record.data)} (Тип: ${record.recordType})`);
+                        log(record.data.userID, record.data.balance)
                     }
                     
+                    if(message.record.balance > 20){
+                        message.record.balance -= 20;
+                        log('оплачено, баланс: ', message.record.balance)
+                    }
                     // ТУТ ЛОГИКА ОПЛАТЫ:
                     // fetch('/api/pay', { method: 'POST', body: JSON.stringify({ uid: serialNumber }) })
                 });
@@ -86,7 +91,7 @@
             try {
                 const ndef = new NDEFReader();
                 // Записываем, например, внутренний ID пользователя или токен
-                await ndef.write("USER_ID_777"); 
+                await ndef.write({userID: 'GG234g', balance: 100}); 
                 log("> Данные успешно записаны на карту!");
             } catch (error) {
                 log("Ошибка записи: " + error);
