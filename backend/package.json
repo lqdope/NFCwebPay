@@ -1,0 +1,27 @@
+{
+  "name": "nfc-webpay",
+  "version": "0.0.1",
+  "description": "nfc web pay fast deploy service",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lqdope/NFCwebPay.git"
+  },
+  "author": "lqdope (Nikita)",
+  "license": "EULA",
+  "bugs": {
+    "url": "https://github.com/lqdope/NFCwebPay/issues"
+  },
+  "homepage": "https://github.com/lqdope/NFCwebPay#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
