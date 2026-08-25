@@ -2,8 +2,12 @@ import logo from "/favicon.svg";
 import "./App.css";
 import { useState, useEffect, useRef } from "react";
 import { useNfc } from "./hooks/useNfc";
+import { useLogs } from "./hooks/useLogs";
 import { Scanner } from "@yudiel/react-qr-scanner";
+
 function App() {
+  const {logs, logsExport, addLog} = useLogs();
+
   const {
     uid,
     isReading,
@@ -15,39 +19,17 @@ function App() {
     isScan,
     handleScan,
     close,
-    startQr
-  } = useNfc();
+    startQr,
+  } = useNfc(addLog);
   const [name, setName] = useState("");
   const [sum, setSum] = useState(0);
-
+  
   const handleCreate = async () => {
     const data = { name };
     if (name.trim() === "") return;
     await write(data);
     setName("");
   };
-  const DBsimulation = [
-    { uid: "FF25C1A0", balance: 137, name: "Nick" },
-    { uid: "FF01C1A0", balance: 114, name: "Oliver" },
-    { uid: "AFABC1A0", balance: 6231, name: "Rich" },
-    { uid: "ACABC1A0", balance: 31, name: "Gilfoyl" },
-  ];
-  function clickAnyBtn() {
-    console.log(
-      `Any Button clicked, states: \n UID: ${uid} \n Sum: ${sum} \n Name: ${name} \n SUMtype: ${typeof sum}`,
-    );
-  }
-  const cancelOperation = () => {
-    setIsReading(false);
-    readingLock.current = false;
-    return;
-  };
-  // useEffect(() => {
-  //   fetch(`http://localhost:5174/api/database/users?uid=FF01C1A0`)
-  //     .then((res) => res.json())
-  //     .then((data) => console.log(data.uidData))
-  //     .catch((e) => console.log("error fetch res", e));
-  // }, []);
   return (
     <div className="app">
       <div className="wrapper">
@@ -140,12 +122,13 @@ function App() {
           <section className="card">
             <div className="history">
               <div className="history__row history__head">
-                <span>UID</span>
+                <span>UID:</span>
                 <span>Operation type</span>
                 <span>Operation value</span>
                 <span>Date and time</span>
               </div>
             </div>
+            <button onClick={logsExport}>Logs export in console</button>
           </section>
         </main>
       </div>

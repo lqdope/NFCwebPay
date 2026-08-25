@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from "react";
-import { Scanner } from "@yudiel/react-qr-scanner";
-export function useNfc() {
-  const [uid, setUid] = useState("");
+export function useNfc(addLog) {
+  
+
+  const [uid, setUid] = useState("FFFFFF");
   const [cardData, setCardData] = useState(null);
   const readingLock = useRef(false);
   const [isReading, setIsReading] = useState(false);
@@ -43,6 +44,7 @@ export function useNfc() {
           console.log(
             `UID: ${serialNumber} \n Balance: ${cardObject.balance}  \n Name: ${cardObject.name}`,
           );
+          addLog('read', serialNumber, cardObject.balance)
         }
       } catch (e) {
         console.log("ошибка в карте", e);
@@ -107,6 +109,7 @@ export function useNfc() {
       setIsReading(false);
       readingLock.current = false;
     }
+    addLog('create', uid)
   }
   async function paySend(sum) {
     if (sum <= 0) return alert("сумма не может быть отрицательной");
@@ -126,6 +129,7 @@ export function useNfc() {
     );
     const result = await response.json();
     alert(JSON.stringify(result.message));
+    addLog('pay', uid, sum)
   }
   async function depositSend(sum) {
     if (sum <= 0) return alert("сумма не может быть отрицательной");
@@ -144,6 +148,7 @@ export function useNfc() {
     );
     const result = await response.json();
     alert(JSON.stringify(result.message));
+    addLog('deposit', uid, sum)
   }
   return {
     uid,
@@ -157,6 +162,5 @@ export function useNfc() {
     handleScan,
     close: closeQr,
     startQr,
-
   };
 }
