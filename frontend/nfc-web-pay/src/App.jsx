@@ -6,7 +6,7 @@ import { useLogs } from "./hooks/useLogs";
 import { Scanner } from "@yudiel/react-qr-scanner";
 
 function App() {
-  const {logs, logsExport, addLog} = useLogs();
+  const { logs, logsExport, addLog } = useLogs();
 
   const {
     uid,
@@ -23,7 +23,7 @@ function App() {
   } = useNfc(addLog);
   const [name, setName] = useState("");
   const [sum, setSum] = useState(0);
-  
+
   const handleCreate = async () => {
     const data = { name };
     if (name.trim() === "") return;
@@ -121,12 +121,16 @@ function App() {
           </section>
           <section className="card">
             <div className="history">
-              <div className="history__row history__head">
-                <span>UID:</span>
-                <span>Operation type</span>
-                <span>Operation value</span>
-                <span>Date and time</span>
-              </div>
+              {logs.map((log) => (
+                <div key={log.id} className="history__row history__head">
+                  <span>UID: {log.uid}</span>
+                  <span>Operation type {log.type}</span>
+                  <span>Operation value {log.sum}</span>
+                  <span>
+                    Date and time {log.date}:{log.time}
+                  </span>
+                </div>
+              ))}
             </div>
             <button onClick={logsExport}>Logs export in console</button>
           </section>
