@@ -12,9 +12,11 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@yudiel/react-qr-scanner": "^2.6.0",
+    "file-saver": "^2.0.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

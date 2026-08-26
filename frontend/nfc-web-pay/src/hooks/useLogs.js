@@ -1,4 +1,6 @@
 import { useCallback, useState } from "react";
+import * as XLSX from 'xlsx';
+import {saveAs} from 'file-saver'
 export function useLogs() {
   const [logs, setLogs] = useState([]);
   const addLog = useCallback((operationType, uid, sum) => {
@@ -14,7 +16,12 @@ export function useLogs() {
     setLogs((prev) => [...prev, newLog]);
   }, []);
   const logsExport = useCallback(() => {
-    console.table(logs);
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(logs);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Logs');
+    const exelBuffer = XLSX.write(workbook, {bookType: 'xlsx', type: 'array'});
+    const fileData = new Blob([exelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
+    saveAs(fileData, 'logs_export.xlsx')
   }, [logs]);
   return {
     logs,

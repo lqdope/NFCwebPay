@@ -1,7 +1,5 @@
 import { useRef, useState, useEffect } from "react";
 export function useNfc(addLog) {
-  
-
   const [uid, setUid] = useState("FFFFFF");
   const [cardData, setCardData] = useState(null);
   const readingLock = useRef(false);
@@ -44,7 +42,7 @@ export function useNfc(addLog) {
           console.log(
             `UID: ${serialNumber} \n Balance: ${cardObject.balance}  \n Name: ${cardObject.name}`,
           );
-          addLog('read', serialNumber, cardObject.balance)
+          addLog("read", serialNumber, cardObject.balance);
         }
       } catch (e) {
         console.log("ошибка в карте", e);
@@ -102,6 +100,7 @@ export function useNfc(addLog) {
       const resResult = await response.json();
       if (resResult.result.ok) {
         await ndef.current.write(JSON.stringify(cardObj));
+        addLog("create", uid);
       }
     } catch (e) {
       console.log("error on card write", e);
@@ -109,7 +108,6 @@ export function useNfc(addLog) {
       setIsReading(false);
       readingLock.current = false;
     }
-    addLog('create', uid)
   }
   async function paySend(sum) {
     if (sum <= 0) return alert("сумма не может быть отрицательной");
@@ -129,7 +127,9 @@ export function useNfc(addLog) {
     );
     const result = await response.json();
     alert(JSON.stringify(result.message));
-    addLog('pay', uid, sum)
+    if (response.ok) {
+      return addLog("pay", uid, sum);
+    }
   }
   async function depositSend(sum) {
     if (sum <= 0) return alert("сумма не может быть отрицательной");
@@ -148,7 +148,9 @@ export function useNfc(addLog) {
     );
     const result = await response.json();
     alert(JSON.stringify(result.message));
-    addLog('deposit', uid, sum)
+    if (response.ok) {
+      return addLog("deposit", uid, sum);
+    }
   }
   return {
     uid,
