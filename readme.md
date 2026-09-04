@@ -12,4 +12,9 @@
 ### Licensing
 [LICENSE](LICENSE)
 NFCwebPay is open-source under the AGPLv3 license. For commercial use without AGPLv3 obligations (e.g., private integrations, White Label), contact us for a Commercial License.
+---
 NFCwebPay — это проект с открытым исходным кодом, распространяемый по лицензии AGPLv3. Для коммерческого использования без обязательств, предусмотренных AGPLv3 (например, для закрытых интеграций или работы по модели White Label), свяжитесь с нами для приобретения коммерческой лицензии.
+
+### To-Do
+1. Создание системы аккаунтов и прав доступа 
+2. Добавление возможности self-hosted
