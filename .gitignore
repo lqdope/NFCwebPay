@@ -2,6 +2,7 @@
 node_modules/
 vendor/
 DataBase/
+DB.json
 # Игнорировать файлы скомпилированного кода
 *.o
 *.exe

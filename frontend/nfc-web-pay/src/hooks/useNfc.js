@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 export function useNfc(addLog) {
-  const [uid, setUid] = useState("FFFFFF");
+  const [uid, setUid] = useState("");
   const [cardData, setCardData] = useState(null);
   const readingLock = useRef(false);
   const [isReading, setIsReading] = useState(false);
@@ -111,45 +111,52 @@ export function useNfc(addLog) {
   }
   async function paySend(sum) {
     if (sum <= 0) return alert("сумма не может быть отрицательной");
-    console.log(sum);
-    const response = await fetch(
-      `http://localhost:5174/api/database/users/user/pay`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    try {
+      const response = await fetch(
+        `http://localhost:5174/api/database/users/user/pay`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sum: sum,
+            uid: uid,
+          }),
         },
-        body: JSON.stringify({
-          sum: sum,
-          uid: uid,
-        }),
-      },
-    );
-    const result = await response.json();
-    alert(JSON.stringify(result.message));
-    if (response.ok) {
-      return addLog("pay", uid, sum);
+      );
+      const result = await response.json();
+      alert(JSON.stringify(result.message));
+      if (response.ok) {
+        return addLog("pay", uid, sum);
+      }
+    } catch {
+      console.log("Ошибка при оплате");
     }
   }
   async function depositSend(sum) {
     if (sum <= 0) return alert("сумма не может быть отрицательной");
-    const response = await fetch(
-      `http://localhost:5174/api/database/users/user/deposit`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    try {
+      const response = await fetch(
+        `http://localhost:5174/api/database/users/user/deposit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sum: sum,
+            uid: uid,
+          }),
         },
-        body: JSON.stringify({
-          sum: sum,
-          uid: uid,
-        }),
-      },
-    );
-    const result = await response.json();
-    alert(JSON.stringify(result.message));
-    if (response.ok) {
-      return addLog("deposit", uid, sum);
+      );
+      const result = await response.json();
+      alert(JSON.stringify(result.message));
+      if (response.ok) {
+        return addLog("deposit", uid, sum);
+      }
+    } catch {
+      console.log("ошибка при депозите");
     }
   }
   return {

@@ -107,6 +107,22 @@ app.post("/api/database/users/user/deposit", async (req, res) => {
     res.status(500).json({ message: "Ошибка" });
   }
 });
+app.post("/api/database/users/getuser", async (req, res) => {
+  try {
+    const { name } = req.body;
+    const rawDataDB = await fs.readFile(filePathDB, "utf-8");
+    const users = JSON.parse(rawDataDB);
+    const findedUser = users.filter((user) =>
+      user.name.toLowerCase().includes(name),
+    );
+    console.log(findedUser);
+    if (findedUser.length === 0)
+      return res.status(404).json({ message: "Клиент не найден" });
+    res.status(200).json(findedUser);
+  } catch {
+    return res.status(404).json({ message: "Клиент не найден" });
+  }
+});
 app.listen(PORT, () => {
   initDB();
   console.log(`Server started on ${PORT} port, link: http://localhost:${PORT}`);
